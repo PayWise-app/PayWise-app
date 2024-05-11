@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">PayWise</string>
+    <string-array name="opciones_spinner_lista">
+        <item>Pagos</item>
+        <item>Compras</item>
+        <item>Medicacion</item>
+        <item>Citas o eventos</item>
+        <item>Cumpleaños o aniversarios</item>
+        <item>Otros</item>
+    </string-array>
+    <string-array name="opciones_spinner_repite">
+        <item>Sin repeticion</item>
+        <item>Una vez al día</item>
+        <item>Una vez a la semana</item>
+        <item>Una vez al mes</item>
+        <item>Una vez al año</item>
+    </string-array>
+</resources>
