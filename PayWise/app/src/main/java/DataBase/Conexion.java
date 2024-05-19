@@ -6,6 +6,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.util.*;
+
+
 public class Conexion extends SQLiteOpenHelper {
 
     private static final String NOMBRE_BASE_DE_DATOS = "PayWise.db";
@@ -22,9 +25,16 @@ public class Conexion extends SQLiteOpenHelper {
                 "nombre TEXT NOT NULL, " +
                 "lista TEXT NOT NULL," +
                 "fecha TEXT NOT NULL," +
-                "hora TEXT,"+
-                "repetir TEXT NOT NULL)";
+                "hora TEXT NOT NULL)";
         db.execSQL(sqlCrearTabla);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Se ejecuta si la versión de la base de datos cambia
+        // Aquí puedes realizar tareas de migración o simplemente descartar la tabla y crear una nueva
+        db.execSQL("DROP TABLE IF EXISTS recordatorios");
+        onCreate(db);
     }
 
     public void ingresarDatos(Context context, ContentValues values){
@@ -32,20 +42,12 @@ public class Conexion extends SQLiteOpenHelper {
         Conexion database = new Conexion(context);
         SQLiteDatabase db = database.getWritableDatabase();
 
-        long idNuevo = db.insert("usuarios", null, values);
+        long idNuevo = db.insert("recordatorios", null, values);
 
         db.close();
     }
 
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        // Manejar actualizaciones de la base de datos aquí
-        // Por simplicidad, simplemente eliminamos y recreamos la tabla
-        db.execSQL("DROP TABLE IF EXISTS recordatorios");
-        onCreate(db);
-    }
-
-        public Cursor obtenerTodosLosRecordatorios() {
+    public Cursor obtenerTodosLosRecordatorios() {
         SQLiteDatabase db = this.getReadableDatabase();
 
         String query = "SELECT * FROM recordatorios";
@@ -57,6 +59,62 @@ public class Conexion extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM recordatorios WHERE lista ='"+lista+"'";
         return db.rawQuery(query, null);
+    }
+
+    public ArrayList<String> obtenerNombres() {
+        ArrayList<String> nombres = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT nombre FROM recordatorios", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                nombres.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+
+        return nombres;
+    }
+
+    public void eliminarRecordatorio(int id){
+        SQLiteDatabase db = this.getReadableDatabase();
+        db.delete("recordatorios", "id=?", new String[]{String.valueOf(id)});
+        db.close();
+    }
+
+    public Cursor buscarRecordatorioPorNombre(String nombre){
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM recordatorios WHERE nombre= '"+nombre+"'", null);
+        return cursor;
+    }
+
+    public void actualizarRecordatorio(String nombre, ContentValues values){
+        SQLiteDatabase db = this.getReadableDatabase();
+        String whereClause = "nombre = ?";
+        String[] whereArgs = {nombre};
+        db.update("recordatorios", values, whereClause, whereArgs);
+        db.close();
+    }
+
+    public ArrayList<String> obtenerNombresPorLista(String lista) {
+        ArrayList<String> nombres = new ArrayList<>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT nombre FROM recordatorios WHERE lista= '"+lista+"'", null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                nombres.add(cursor.getString(0));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+
+        return nombres;
     }
 
 }
