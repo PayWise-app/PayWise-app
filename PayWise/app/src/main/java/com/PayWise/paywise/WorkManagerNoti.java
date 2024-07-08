@@ -55,7 +55,7 @@ public class WorkManagerNoti extends Worker {
             assert nm != null;
             nm.createNotificationChannel(nc);
         }
-        Intent intent = new Intent(getApplicationContext(), CrearRecordatorio.class);
+        Intent intent = new Intent(getApplicationContext(), CrearDeuda.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(getApplicationContext(), 0, intent, PendingIntent.FLAG_ONE_SHOT | PendingIntent.FLAG_IMMUTABLE);
         builder.setAutoCancel(true)

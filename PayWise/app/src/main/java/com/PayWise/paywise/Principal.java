@@ -1,20 +1,26 @@
 package com.PayWise.paywise;
 
+import android.Manifest;
 import android.content.Intent;
-import android.database.sqlite.SQLiteDatabase;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-
+import androidx.annotation.NonNull;
+import android.widget.Toast;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import DataBase.Conexion;
-
 public class Principal extends AppCompatActivity {
-
+    private static final String PREFS_NAME = "MyPrefsFile";
+    private static final String PREF_FIRST_RUN = "firstRun";
+    private static final int REQUEST_CODE_POST_NOTIFICATIONS = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,10 +32,45 @@ public class Principal extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        SharedPreferences settings = getSharedPreferences(PREFS_NAME, 0);
+        boolean firstRun = settings.getBoolean(PREF_FIRST_RUN, true);
+
+        if (firstRun) {
+            // We are running for the first time
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                            Manifest.permission.POST_NOTIFICATIONS)) {
+                        Toast.makeText(this, "Las notificaciones son importantes para recibir alertas.", Toast.LENGTH_LONG).show();
+                    }
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.POST_NOTIFICATIONS},
+                            REQUEST_CODE_POST_NOTIFICATIONS);
+                }
+            }
+            // Save the state to not ask for permissions again
+            SharedPreferences.Editor editor = settings.edit();
+            editor.putBoolean(PREF_FIRST_RUN, false);
+            editor.apply();
+        }
     }
 
     public void irASegundoLayout(View view) {
-        Intent intent = new Intent(this, Recordatorios.class);
-        startActivity(intent);
+        startActivity(new Intent(this, Deudas.class));
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           @NonNull String[] permissions,
+                                           @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE_POST_NOTIFICATIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                Toast.makeText(this, "Permiso de notificaciones concedido.", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Permiso de notificaciones denegado. Algunas funciones pueden no estar disponibles.", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }

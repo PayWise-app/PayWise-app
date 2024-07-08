@@ -15,23 +15,27 @@ import android.widget.Spinner;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 import DataBase.Conexion;
+import Entity.Deuda;
 
-public class Recordatorios extends AppCompatActivity {
+public class Deudas extends AppCompatActivity {
 
     private LinearLayout layout;
     private Conexion conexion;
-    private ArrayList<String> nombres;
+    private ArrayList<Deuda> deudas;
     private Spinner spinner;
-    private String seleccionlista="Todos";
+    private String selecciontipo="Todos";
 
     @SuppressLint("UseCompatLoadingForColorStateLists")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.recordatorios);
+        setContentView(R.layout.deudas);
 
         layout = findViewById(R.id.layoutprincipal);
         conexion = new Conexion(this);
@@ -43,49 +47,46 @@ public class Recordatorios extends AppCompatActivity {
         adapterlista.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapterlista);
 
-        // Configurar el listener para el Spinner
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                // Obtener el elemento seleccionado
-                seleccionlista = (String) parent.getItemAtPosition(position);
 
-                // Limpiar los botones existentes antes de generar nuevos
+                selecciontipo = (String) parent.getItemAtPosition(position);
+
                 layout.removeAllViews();
 
-                // Generar los nuevos botones basados en la selección del Spinner
-                if (Objects.equals(seleccionlista, "Todos")) {
-                    if (!conexion.obtenerNombres().isEmpty()) {
-                        nombres = conexion.obtenerNombres();
-                        crearBotones(nombres);
+                if (Objects.equals(selecciontipo, "Todos")) {
+                    if (!conexion.obtenerIds().isEmpty()) {
+                        deudas = conexion.obtenerIds();
+                        crearBotones(deudas);
                     }
                 } else {
-                    if (!conexion.obtenerNombresPorLista(seleccionlista).isEmpty()) {
-                        nombres = conexion.obtenerNombresPorLista(seleccionlista);
-                        crearBotones(nombres);
+                    if (!conexion.obtenerDeudasPorMes(String.valueOf(position)).isEmpty()) {
+                        deudas = conexion.obtenerDeudasPorMes(String.valueOf(position));
+                        crearBotones(deudas);
                     }
                 }
             }
 
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
-                seleccionlista = null;
+                selecciontipo = null;
             }
         });
 
     }
 
     public void irASegundoLayout(View view) {
-        Intent intent = new Intent(this, CrearRecordatorio.class);
+        Intent intent = new Intent(this, CrearDeuda.class);
         startActivity(intent);
     }
 
-    private void crearBotones(ArrayList<String> nombres) {
-        for (String dato : nombres) {
+    private void crearBotones(ArrayList<Deuda> deudas) {
+        for (Deuda deuda : deudas) {
             Button button = new Button(this);
             button.setId(View.generateViewId()); // Genera un ID único para cada botón
-            button.setText(dato);
-            button.setTextColor(Color.WHITE);
+            button.setText(deuda.getEmpresa() + " - " + deuda.getTipo());
+            button.setTag(deuda.getId());
             button.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20);
             button.setAllCaps(false);
 
@@ -96,15 +97,30 @@ public class Recordatorios extends AppCompatActivity {
             );
             layoutParams.setMargins(0, 10, 25, 0); // Margen superior de 10dp y margen derecho de 25dp
             button.setLayoutParams(layoutParams);
-            button.setBackgroundTintList(getResources().getColorStateList(com.google.android.material.R.color.design_default_color_secondary_variant));// Agregar el botón al layout
+
+            LocalDate inicioSemana = LocalDate.now().with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+            LocalDate finSemana = LocalDate.now().with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+            if (deuda.getEstado().equals("Pagado")) {
+                button.setTextColor(Color.WHITE);
+                button.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_green_dark));
+            } else if (deuda.getFecha().isBefore(LocalDate.now())) {
+                button.setTextColor(Color.WHITE);
+                button.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_red_dark));
+            } else if (deuda.getFecha().isBefore(finSemana) && deuda.getFecha().isAfter(inicioSemana)) {
+                button.setTextColor(Color.BLACK);
+                button.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_orange_light));
+            } else {
+                button.setTextColor(Color.WHITE);
+                button.setBackgroundTintList(getResources().getColorStateList(android.R.color.black));
+            }
             button.setMinHeight((int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 100, getResources().getDisplayMetrics()));
             layout.addView(button);
-            // Aquí puedes agregar cualquier acción que desees que se realice cuando se haga clic en el botón
+
             button.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent intent = new Intent(Recordatorios.this, ActualizarRecordatorio.class);
-                    intent.putExtra("name", button.getText().toString());
+                    Intent intent = new Intent(Deudas.this, ActualizarDeuda.class);
+                    intent.putExtra("id", button.getTag().toString());
                     startActivity(intent);
                 }
             });

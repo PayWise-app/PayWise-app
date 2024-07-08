@@ -22,9 +22,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Recordatorios" />
-        <activity android:name=".CrearRecordatorio" />
-        <activity android:name=".ActualizarRecordatorio" />
+        <activity android:name=".Deudas" />
+        <activity android:name=".CrearDeuda" />
+        <activity android:name=".ActualizarDeuda" />
     </application>
 
 </manifest>
