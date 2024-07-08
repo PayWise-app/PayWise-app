@@ -196,15 +196,28 @@
                 android:text="La hora asignada por defecto sera 8:00 am"
                 android:layout_below="@+id/TextTime"/>
 
-            <Switch
-                android:textSize="20sp"
-                android:id="@+id/switch1"
+            <Button
+                android:id="@+id/btnImagen"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="70dp"
                 android:layout_marginLeft="45dp"
-                android:layout_marginTop="15dp"
                 android:layout_marginRight="40dp"
-                android:text="Ingresar Excel"/>
+                android:layout_marginTop="15dp"
+                android:textSize="20sp"
+                android:backgroundTint="@color/design_default_color_secondary_variant"
+                android:text="Insertar imagen" />
+
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:maxHeight="800dp"
+                android:minHeight="400dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp"
+                android:contentDescription="@string/app_name"/>
 
         </LinearLayout>
 

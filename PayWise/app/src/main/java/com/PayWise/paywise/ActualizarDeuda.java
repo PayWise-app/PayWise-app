@@ -9,7 +9,8 @@ import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteConstraintException;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.view.View;
@@ -18,6 +19,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -36,6 +38,7 @@ public class ActualizarDeuda extends AppCompatActivity {
     private Deuda deuda = new Deuda();
     private TextView empresaTextView, fechaTextView, horaTextView, idTextView, montoTextView;
     private ImageButton seleccionarFechaButton, seleccionarHoraButton;
+    private ImageView imageView;
     public String selecciontipo;
     Spinner tipoSpinner;
 
@@ -52,6 +55,7 @@ public class ActualizarDeuda extends AppCompatActivity {
         int horaIndex = cursor.getColumnIndex("hora");
         int tipoIndex = cursor.getColumnIndex("tipo");
         int estadoIndex = cursor.getColumnIndex("estado");
+        int imagenIndex = cursor.getColumnIndex("imagen");
 
         if (cursor.moveToFirst()) {
             deuda.setId(cursor.getString(idIndex));
@@ -61,6 +65,7 @@ public class ActualizarDeuda extends AppCompatActivity {
             deuda.setFecha(LocalDate.parse(cursor.getString(fechaIndex), dateFormatter));
             deuda.setHora(LocalTime.parse(cursor.getString(horaIndex)));
             deuda.setEstado(cursor.getString(estadoIndex));
+            deuda.setImagen(cursor.getBlob(imagenIndex));
         }
 
         idTextView = findViewById(R.id.textNumber);
@@ -68,12 +73,17 @@ public class ActualizarDeuda extends AppCompatActivity {
         montoTextView = findViewById(R.id.editTextNumberDecimal);
         fechaTextView = findViewById(R.id.textDate);
         horaTextView = findViewById(R.id.TextTime);
+        imageView = findViewById(R.id.imageView);
 
         idTextView.setText(deuda.getId());
         empresaTextView.setText(deuda.getEmpresa());
         montoTextView.setText(String.valueOf(deuda.getMonto()));
         fechaTextView.setText(deuda.getFecha().format(dateFormatter));
         horaTextView.setText(deuda.getHora().toString());
+        if (deuda.getImagen() != null) {
+            Bitmap bitmap = convertByteArrayToBitmap(deuda.getImagen());
+            imageView.setImageBitmap(bitmap);
+        }
 
         tipoSpinner = findViewById(R.id.spinner_lista);
 
@@ -250,6 +260,10 @@ public class ActualizarDeuda extends AppCompatActivity {
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+    }
+
+    private Bitmap convertByteArrayToBitmap(byte[] byteArray) {
+        return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.length);
     }
 
     private int obtenerHora(String hora) {

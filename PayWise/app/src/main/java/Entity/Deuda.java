@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 
 public class Deuda {
-    private byte[] archivo;
     private String empresa;
     private String estado;
     private LocalDate fecha;
@@ -12,19 +11,20 @@ public class Deuda {
     private String id;
     private float monto;
     private String tipo;
+    private byte[] imagen;
 
     public Deuda() {
     }
 
-    public Deuda(String id2, String tipo2, String empresa2, float monto2, LocalDate fecha2, LocalTime hora2, String estado2, byte[] archivo2) {
-        this.id = id2;
-        this.tipo = tipo2;
-        this.empresa = empresa2;
-        this.monto = monto2;
-        this.fecha = fecha2;
-        this.hora = hora2;
-        this.estado = estado2;
-        this.archivo = archivo2;
+    public Deuda(String empresa, String estado, LocalDate fecha, LocalTime hora, String id, float monto, String tipo, byte[] imagen) {
+        this.empresa = empresa;
+        this.estado = estado;
+        this.fecha = fecha;
+        this.hora = hora;
+        this.id = id;
+        this.monto = monto;
+        this.tipo = tipo;
+        this.imagen = imagen;
     }
 
     public String getId() {
@@ -55,8 +55,8 @@ public class Deuda {
         return this.estado;
     }
 
-    public byte[] getArchivo() {
-        return this.archivo;
+    public byte[] getImagen() {
+        return imagen;
     }
 
     public void setId(String id2) {
@@ -87,7 +87,7 @@ public class Deuda {
         this.estado = estado2;
     }
 
-    public void setArchivo(byte[] archivo2) {
-        this.archivo = archivo2;
+    public void setImagen(byte[] imagen) {
+        this.imagen = imagen;
     }
 }

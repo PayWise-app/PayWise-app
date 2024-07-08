@@ -187,6 +187,18 @@
                 android:text="La hora asignada por defecto sera 8:00 am"
                 android:layout_below="@+id/TextTime"/>
 
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:maxHeight="800dp"
+                android:minHeight="400dp"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="15dp"
+                android:layout_marginBottom="15dp"
+                android:contentDescription="@string/app_name"/>
+
         </LinearLayout>
 
     </ScrollView>

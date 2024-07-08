@@ -106,7 +106,7 @@ public class Deudas extends AppCompatActivity {
             } else if (deuda.getFecha().isBefore(LocalDate.now())) {
                 button.setTextColor(Color.WHITE);
                 button.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_red_dark));
-            } else if (deuda.getFecha().isBefore(finSemana) && deuda.getFecha().isAfter(inicioSemana)) {
+            } else if (!deuda.getFecha().isBefore(inicioSemana) && !deuda.getFecha().isAfter(finSemana)) {
                 button.setTextColor(Color.BLACK);
                 button.setBackgroundTintList(getResources().getColorStateList(android.R.color.holo_orange_light));
             } else {

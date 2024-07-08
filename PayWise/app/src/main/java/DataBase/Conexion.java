@@ -30,7 +30,7 @@ public class Conexion extends SQLiteOpenHelper {
                 "fecha TEXT NOT NULL, "+
                 "hora TEXT NOT NULL, "+
                 "estado TEXT NOT NULL, "+
-                "archivo BLOB)";
+                "imagen BLOB)";
 
         db.execSQL(sqlCrearTabla);
     }

@@ -1,27 +1,39 @@
 package com.PayWise.paywise;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.database.sqlite.SQLiteConstraintException;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.icu.util.Calendar;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Spinner;
-import android.widget.Switch;
 import android.widget.TimePicker;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.work.Data;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -34,14 +46,18 @@ public class CrearDeuda extends AppCompatActivity {
 
     private EditText id, empresa, monto, fecha, hora;
     private Spinner tipo;
-    private Switch excel;
     private ImageButton seleccionarFechaButton, seleccionarHoraButton;
+    private Button btnSelectImage;
+    private ImageView imageView;
+    private byte[] imageByteArray;
     private Deuda deuda = new Deuda();
     private String selecciontipo;
     Calendar calendar = Calendar.getInstance();
     DateTimeFormatter dateFormatterBD = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    DateTimeFormatter dateFormatterClass = DateTimeFormatter.ofPattern("yyyy/MM/dd");
     DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("HH:mm");
+    private static final int REQUEST_CODE_CAMERA = 1;
+    private static final int REQUEST_CODE_GALLERY = 2;
+    private static final int REQUEST_CODE_PERMISSIONS = 3;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,6 +117,26 @@ public class CrearDeuda extends AppCompatActivity {
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 selecciontipo = (String) parent.getItemAtPosition(0);
+            }
+        });
+
+        imageView = findViewById(R.id.imageView);
+        btnSelectImage = findViewById(R.id.btnImagen);
+
+        btnSelectImage.setOnClickListener(v -> {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED ||
+                        ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this, new String[]{
+                            Manifest.permission.CAMERA,
+                            Manifest.permission.READ_EXTERNAL_STORAGE,
+                            Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_PERMISSIONS);
+                } else {
+                    showImagePickerDialog();
+                }
+            } else {
+                showImagePickerDialog();
             }
         });
     }
@@ -164,6 +200,9 @@ public class CrearDeuda extends AppCompatActivity {
 
             deuda.setTipo(selecciontipo);
             deuda.setEstado("Por pagar");
+            if (imageByteArray != null) {
+                deuda.setImagen(imageByteArray);
+            }
 
             Conexion conexion = new Conexion(this);
 
@@ -179,6 +218,9 @@ public class CrearDeuda extends AppCompatActivity {
                 values.put("fecha", deuda.getFecha().format(dateFormatterBD));
                 values.put("hora", deuda.getHora().toString());
                 values.put("estado", deuda.getEstado());
+                if (imageByteArray != null) {
+                    values.put("imagen", deuda.getImagen());
+                }
 
                 conexion.ingresarDatos(this, values);
 
@@ -217,6 +259,69 @@ public class CrearDeuda extends AppCompatActivity {
                 })
                 .setIcon(android.R.drawable.ic_dialog_alert)
                 .show();
+    }
+
+    private void openCamera() {
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        startActivityForResult(intent, REQUEST_CODE_CAMERA);
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, REQUEST_CODE_GALLERY);
+    }
+
+    private void showImagePickerDialog() {
+        String[] options = {"Tomar Foto", "Seleccionar de la Galería"};
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Selecciona una opción");
+        builder.setItems(options, (dialog, which) -> {
+            if (which == 0) {
+                openCamera();
+            } else {
+                openGallery();
+            }
+        });
+        builder.show();
+    }
+
+    private byte[] convertBitmapToByteArray(Bitmap bitmap) {
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+        return stream.toByteArray();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_CODE_CAMERA && data != null) {
+                Bitmap photo = (Bitmap) data.getExtras().get("data");
+                imageView.setImageBitmap(photo);
+                imageByteArray = convertBitmapToByteArray(photo);
+            } else if (requestCode == REQUEST_CODE_GALLERY && data != null) {
+                Uri selectedImage = data.getData();
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), selectedImage);
+                    imageView.setImageBitmap(bitmap);
+                    imageByteArray = convertBitmapToByteArray(bitmap);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                showImagePickerDialog();
+            } else {
+                Toast.makeText(this, "Permisos denegados", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private int obtenerHora(String hora) {
